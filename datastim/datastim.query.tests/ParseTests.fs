@@ -26,6 +26,27 @@ module ParseTests =
             let query = "Member where Name = 'Mark'"
             let result = parse query
             test result (Query("Member", [ Where(Condition(Property("Name"), Equals, String("Mark"))) ]))
+
+        [<Test>]
+        member x.``Parse where property equals another value``() = 
+            let query = "Member where Name = 'John'"
+            let result = parse query
+            test result (Query("Member", [ Where(Condition(Property("Name"), Equals, String("John"))) ]))
+        
+        [<Test>]
+        member x.``Parse where sub-property equals a value``() = 
+            let query = "Member where AssignedTo/Name = 'Mark'"
+            let result = parse query
+            test result 
+                (Query("Member", [ Where(Condition(Path("AssignedTo", Property("Name")), Equals, String("Mark"))) ]))
+        
+        [<Test>]
+        member x.``Parse expand property and a property equals a value``() = 
+            let query = "Feature expand AssignedTo where Name = 'Mark'"
+            let result = parse query
+            test result (Query("Feature", 
+                               [ Expand([ Property("AssignedTo") ])
+                                 Where(Condition(Property("Name"), Equals, String("Mark"))) ]))
         
         [<Test>]
         member x.``Parse expand property``() = 

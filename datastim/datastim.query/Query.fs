@@ -75,7 +75,17 @@ module QueryModule =
 
         let pEquals = pstring "=" .>> spaces |>> (fun _ -> Equals)
 
-        let pLiteral = between (pstring "'") (pstring "'") (pstring "Mark")
+        let stringLiteral =
+            let normalCharSnippet = manySatisfy (fun c -> c <> '\\' && c <> ''')
+            let escapedChar = pstring "\\" >>. (anyOf "\\nrt'" |>> function
+                                                            | 'n' -> "\n"
+                                                            | 'r' -> "\r"
+                                                            | 't' -> "\t"
+                                                            | c   -> string c)
+            between (pstring "'") (pstring "'")
+                    (stringsSepBy normalCharSnippet escapedChar)
+
+        let pLiteral = stringLiteral
 
         let pWhereClause = pipe3 pPropertyPath pEquals pLiteral (fun x y z -> Condition(x,y,String(z)))
 
