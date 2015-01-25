@@ -14,7 +14,7 @@ module QueryModule =
         | Unexpanded of string
     
     let parse (query : string) = 
-        let pExpand = pstringCI "expand" .>> spaces
+        
         
         let pIdentifier name = 
             let isIdentifierFirstChar c = isLetter c || c = '_'
@@ -48,8 +48,20 @@ module QueryModule =
 
                 Path(root,buildpath head tail)
 
-        let pPropertyPath = pipe2 pProperty pChildProperty convertToPropertyPath
-        let parser = pipe3 pEntity pExpand pPropertyPath (fun x y z -> Expanded(x,[z]))
+        let pPropertyPath = sepBy (pipe2 pProperty pChildProperty convertToPropertyPath) (pstring "," .>> spaces)
+
+        let pExpand = pstringCI "expand" .>> spaces
+
+        let pExpand = opt (pExpand >>. pPropertyPath)
+
+        let convertToEntity entity expand = 
+            match expand with
+            | Some(x) ->
+                Expanded(entity, x)
+            | None ->
+                Unexpanded(entity)
+
+        let parser = pipe2 pEntity pExpand convertToEntity
 
         run parser query
     
