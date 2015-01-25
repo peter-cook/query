@@ -1,16 +1,14 @@
 ﻿namespace datastim.query.tests
 
-module ParseTests = 
+module ParserTests = 
     open datastim.query
     open NUnit.Framework
     open FParsec
     open FsUnit
-    open QueryModule
+    open ParserModule
     
     let test result expected = 
-        match result with
-        | Success(result, _, _) -> result |> should equal expected
-        | Failure(message, _, _) -> Assert.Fail(message)
+        result |> should equal expected
     
     [<TestFixture>]
     type ``Parse tests``() = 

@@ -49,12 +49,16 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="ParseTests.fs" />
+    <Compile Include="ParserTests.fs" />
     <Compile Include="EvaluateTests.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Deedle">
+      <HintPath>..\..\packages\Deedle.1.0.7\lib\net40\Deedle.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FParsec">
       <HintPath>..\..\packages\FParsec.1.0.1\lib\net40-client\FParsec.dll</HintPath>
       <Private>True</Private>

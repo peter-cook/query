@@ -1,10 +1,8 @@
 ﻿namespace datastim.query
 
-open Deedle
-open FParsec
+module ParserModule = 
+    open FParsec
 
-module QueryModule = 
-    
     type EntityPart = string
     
     type PropertyPath = 
@@ -95,6 +93,9 @@ module QueryModule =
 
         let parser = pipe2 pEntity pQueryParts (fun e qp -> Query(e,qp))
 
-        run parser query
-    
-    let evaluate query = 1
+        let parsed = run parser query
+        match parsed with
+        | Failure(message,_,_) ->
+            failwith message
+        | Success(result,_,_) ->
+            result

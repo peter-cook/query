@@ -1,6 +1,5 @@
 ﻿namespace datastim.query.tests
 
-open System.Collections.Generic
 open System
 
 [<AllowNullLiteral>]
@@ -26,14 +25,9 @@ type Feature(id, summary, requestedBy_id, assignedTo_id) =
     member x.AssignedTo : Member = null
     member x.AssignedTo_id = assignedTo_id
 
-type DataSet() = 
-    let entities = new Dictionary<string, string * seq<Object>>()
-    let links = new Dictionary<string * string, seq<Object>>()
-    member x.AddEntities(entity, key, data) = entities.Add(entity, (key, data))
-    member x.AddLinks(entity1, entity2, data) = links.Add((entity1, entity2), data)
-
 module EvaluateTests = 
     open datastim.query
+    open EvaluateModule
     open NUnit.Framework
     open FsUnit
     
@@ -72,7 +66,7 @@ module EvaluateTests =
         |> List.toSeq
         |> Seq.cast<Object>
     
-    let dataSet = new DataSet()
+    let dataSet = new SourceDataSet()
     
     dataSet.AddEntities("Feature", "Id", features)
     dataSet.AddEntities("Member", "Id", members)
@@ -84,5 +78,5 @@ module EvaluateTests =
         [<Test>]
         member x.``Evaluate expand non-collection property results in outer join``() = 
             let query = "Feature expand AssignedTo"
-            let result = QueryModule.evaluate query
+            let result = evaluate dataSet query 
             result |> should equal 1
