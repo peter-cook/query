@@ -19,46 +19,52 @@ module ParseTests =
         member x.``Parse only entity``() = 
             let query = "Feature"
             let result = parse query
-            test result (Unexpanded("Feature"))
-
+            test result (Query("Feature", []))
+        
+        [<Test>]
+        member x.``Parse where property equals a value``() = 
+            let query = "Member where Name = 'Mark'"
+            let result = parse query
+            test result (Query("Member", [ Where(Condition(Property("Name"), Equals, String("Mark"))) ]))
+        
         [<Test>]
         member x.``Parse expand property``() = 
             let query = "Feature expand AssignedTo"
             let result = parse query
-            test result (Expanded("Feature", [ Property("AssignedTo") ]))
+            test result (Query("Feature", [ Expand([ Property("AssignedTo") ]) ]))
         
         [<Test>]
         member x.``Parse expand multiple properties``() = 
             let query = "Feature expand AssignedTo,RequestedBy"
             let result = parse query
-            test result (Expanded("Feature", 
-                                  [ Property("AssignedTo")
-                                    Property("RequestedBy") ]))
-
+            test result (Query("Feature", 
+                               [ Expand([ Property("AssignedTo")
+                                          Property("RequestedBy") ]) ]))
+        
         [<Test>]
         member x.``Parse expand multiple properties (with space after comma)``() = 
             let query = "Feature expand AssignedTo, RequestedBy"
             let result = parse query
-            test result (Expanded("Feature", 
-                                  [ Property("AssignedTo")
-                                    Property("RequestedBy") ]))
+            test result (Query("Feature", 
+                               [ Expand([ Property("AssignedTo")
+                                          Property("RequestedBy") ]) ]))
         
         [<Test>]
         member x.``Parse expand multiple properties (one a sub-property)``() = 
             let query = "Feature expand AssignedTo,RequestedBy/Groups"
             let result = parse query
-            test result (Expanded("Feature", 
-                                  [ Property("AssignedTo")
-                                    Path("RequestedBy", Property("Groups")) ]))
+            test result (Query("Feature", 
+                               [ Expand([ Property("AssignedTo")
+                                          Path("RequestedBy", Property("Groups")) ]) ]))
         
         [<Test>]
         member x.``Parse expand sub-property``() = 
             let query = "Group expand Members/Groups"
             let result = parse query
-            test result (Expanded("Group", [ Path("Members", Property("Groups")) ]))
-
+            test result (Query("Group", [ Expand([ Path("Members", Property("Groups")) ]) ]))
+        
         [<Test>]
         member x.``Parse expand sub-sub-property``() = 
             let query = "Group expand Members/Groups/Members"
             let result = parse query
-            test result (Expanded("Group", [ Path("Members", Path("Groups", Property("Members"))) ]))
+            test result (Query("Group", [ Expand([ Path("Members", Path("Groups", Property("Members"))) ]) ]))

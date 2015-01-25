@@ -5,16 +5,31 @@ open FParsec
 
 module QueryModule = 
     
+    type EntityPart = string
+    
     type PropertyPath = 
         | Property of string 
         | Path of string * PropertyPath
 
-    type Entity = 
-        | Expanded of string * list<PropertyPath>
-        | Unexpanded of string
+    type ExpandPart = list<PropertyPath>
+
+    type Op = 
+        | Equals
+
+    type Literal = 
+        | String of string
+
+    type WherePart = 
+        | Condition of PropertyPath * Op * Literal
+
+    type QueryPart = 
+        | Expand of ExpandPart
+        | Where of WherePart
+
+    type Query = 
+        | Query of EntityPart * list<QueryPart>
     
     let parse (query : string) = 
-        
         
         let pIdentifier name = 
             let isIdentifierFirstChar c = isLetter c || c = '_'
@@ -48,20 +63,27 @@ module QueryModule =
 
                 Path(root,buildpath head tail)
 
-        let pPropertyPath = sepBy (pipe2 pProperty pChildProperty convertToPropertyPath) (pstring "," .>> spaces)
+        let pPropertyPath = pipe2 pProperty pChildProperty convertToPropertyPath
+
+        let pPropertyPaths = sepBy pPropertyPath (pstring "," .>> spaces)
 
         let pExpand = pstringCI "expand" .>> spaces
 
-        let pExpand = opt (pExpand >>. pPropertyPath)
+        let pExpand = pExpand >>. pPropertyPaths |>> (fun x -> Expand(x))
 
-        let convertToEntity entity expand = 
-            match expand with
-            | Some(x) ->
-                Expanded(entity, x)
-            | None ->
-                Unexpanded(entity)
+        let pWhere = pstringCI "where" .>> spaces
 
-        let parser = pipe2 pEntity pExpand convertToEntity
+        let pEquals = pstring "=" .>> spaces |>> (fun _ -> Equals)
+
+        let pLiteral = between (pstring "'") (pstring "'") (pstring "Mark")
+
+        let pWhereClause = pipe3 pPropertyPath pEquals pLiteral (fun x y z -> Condition(x,y,String(z)))
+
+        let pWhere = pWhere >>. pWhereClause |>> (fun x -> Where(x))
+
+        let pQueryParts = many (choice [ pExpand; pWhere ])
+
+        let parser = pipe2 pEntity pQueryParts (fun e qp -> Query(e,qp))
 
         run parser query
     
