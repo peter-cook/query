@@ -1,7 +1,5 @@
 ﻿namespace datastim.query.tests
 
-open NUnit.Framework
-open FsUnit
 open System.Collections.Generic
 open System
 
@@ -34,9 +32,11 @@ type DataSet() =
     member x.AddEntities(entity, key, data) = entities.Add(entity, (key, data))
     member x.AddLinks(entity1, entity2, data) = links.Add((entity1, entity2), data)
 
-module Tests = 
+module EvaluateTests = 
     open datastim.query
-
+    open NUnit.Framework
+    open FsUnit
+    
     let groups = 
         [ new Group(1, "Administrator")
           new Group(2, "Developer")
@@ -79,10 +79,10 @@ module Tests =
     dataSet.AddEntities("Group", "Id", groups)
     dataSet.AddLinks("Group", "Member", group_member_links)
     
-    [<Test>]
-    let ``Expand non-collection property results in outer join``() = 
-        let query = "Feature expand AssignedTo"
-
-        let result = Query.evaluate query
-        
-        result |> should equal 1
+    [<TestFixture>]
+    type ``Evaluate tests``() = 
+        [<Test>]
+        member x.``Evaluate expand non-collection property results in outer join``() = 
+            let query = "Feature expand AssignedTo"
+            let result = QueryModule.evaluate query
+            result |> should equal 1
